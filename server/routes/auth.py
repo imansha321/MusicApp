@@ -6,6 +6,12 @@ from pydantic_schemas.user_create import UserCreate
 from pydantic_schemas.user_login import UserLogin
 from database import get_db
 from sqlalchemy.orm import Session
+import jwt 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 router = APIRouter()
 
@@ -21,7 +27,9 @@ async def signup_user(user: UserCreate , db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user_db)
 
-    return user_db
+    token = jwt.encode({"user_id": user_db.id}, SECRET_KEY, algorithm="HS256")
+
+    return {"username": user_db.name, "email": user_db.email, "id": user_db.id, "token": token}
 
 
 @router.post("/login")
@@ -33,4 +41,6 @@ async def login_user(user: UserLogin , db: Session = Depends(get_db)):
     if not bcrypt.checkpw(user.password.encode('utf-8'), user_db.password):
         raise HTTPException(status_code=400, detail="Invalid email or password") 
     
-    return {"message": "Login successful"}
+    token = jwt.encode({"user_id": user_db.id}, SECRET_KEY, algorithm="HS256")
+
+    return {"username": user_db.name, "email": user_db.email, "id": user_db.id, "token": token}

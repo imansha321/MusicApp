@@ -11,7 +11,7 @@ app.include_router(auth_router, prefix="/auth")
 
 @app.post("/")
 async def read_root():
-    return {"Hello": "World"}
+    return {"Music API": "Welcome to the Music API!"}
     
 
 
